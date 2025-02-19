@@ -1,0 +1,3 @@
+compile the spirv to hlsl (DXIL thing) and use DXIL instead of spirv. we know spirv thing works, although we get this:
+WARNING: Out of BAR memory, allocating uniform buffers on host-local memory, expect degraded performance!
+
