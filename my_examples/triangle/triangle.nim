@@ -22,7 +22,7 @@ proc loadShader(gpu: SDL_GPUDevice; filename: string; stage: SDL_GPUShaderStage;
 
     let shaderInfo = SDL_GPUShaderCreateInfo(
         code_size: code.len.uint32,
-        code: cast[ptr UncheckedArray[uint8]](unsafeAddr code[0]),
+        code: cast[ptr UncheckedArray[uint8]](addr code[0]),
         entrypoint: cstring"main",
         format: format,
         stage: stage
