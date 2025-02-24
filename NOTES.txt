@@ -1,0 +1,9 @@
+1.) get shadercross working on Windows (document process)
+2.) get simple triangle example that merges 'common' and 'triangle' file
+3.) translate the example into Nim and get it working
+4.) use the HLSL shader sources & compile shaders using shadercross
+5.) verify that works
+6.) learn SDL GPU API process and basics from the example
+7.) learn basic SDL GPU API for 3d stuff (basic cube)
+8.) learn how to abstract some of the setup if possible
+9-X.) ???
