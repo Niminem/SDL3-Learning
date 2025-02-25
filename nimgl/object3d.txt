@@ -1,0 +1,18 @@
+The Object3D class is the core building block in Three.js, serving as the base for almost every
+3D object, including meshes, cameras, lights, and groups. In your Nim + SDL3 GPU API version,
+we'll replicate its functionality while optimizing for Nim's performance and language features.
+
+Some Key Responsibilities of Object3D
+
+Transformations:
+
+Position (Vector3), rotation (Quaternion or Euler angles), and scale (Vector3).
+Transformation matrices (matrix, matrixWorld).
+Methods for updating these transformations.
+
+Hierarchy Management:
+Parent-child relationships.
+Scene graph traversal methods (add(), remove(), traverse()).
+
+Visibility and Rendering Flags:
+visible, castShadow, receiveShadow, etc.
