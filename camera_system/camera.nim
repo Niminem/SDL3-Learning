@@ -1,6 +1,7 @@
 import std/[os, osproc, math]
-import pkg/[glm]
-import ../vendor/[stb_image/read, sdl3/sdl3]
+import pkg/[glm, stb_image/read]
+import ../vendor/sdl3/sdl3
+import camera_system
 # note: only using load function and RGBA constant from stb_image
 
 type
@@ -264,33 +265,104 @@ proc main =
     let projectionMatrix = perspective[float32](degToRad(90.0),
                                                                       windowSize.x.float / windowSize.y.float,
                                                                       0.0001, 1000.0)
+    let cam = initCamera(45.0'f32, windowSize.x.float / windowSize.y.float, 0.1'f32, 100.0'f32)
+    cam.position = vec3f(0, 0, 3)
+    cam.updateCameraVectors()
+
     let rotationSpeed = degToRad(90.0'f32)
     var rotation = 0.0'f32
     var ubo: UBO
 
+    # FPS control
+    const TARGET_FPS = 60
+    const FRAME_TIME = (1000 div TARGET_FPS).int32  # 16ms per frame
+
+    # controls
     var
-        quit = false
-        lastTick = SDL_GetTicks()
+        quit, moveFwd, moveBack, moveLeft, moveRight, moveUp,
+            moveDown, accelerate, rotating, mouseMoved = false
+        lastMouseX, lastMouseY = 0'i32
+        mouseXOffset, mouseYOffset = 0'i32
+    discard SDL_GetMouseState(lastMouseX, lastMouseY)  # Ensure initial values are correct
+    var lastTick = SDL_GetTicks() # init time
     while not quit:
         var
             newTick = SDL_GetTicks()
             deltaTime = (newTick - lastTick).float / 1000.0
         lastTick = newTick
+
         var event: SDL_Event
         while SDL_PollEvent(event):
-            if event.type == SDL_EVENT_QUIT: quit = true
-            elif event.type == SDL_EVENT_KEYDOWN:
-                if event.key.scancode == SDL_SCANCODE_ESCAPE: quit = true
-            else: continue
+            case event.type
+            of SDL_EVENT_QUIT: quit = true
+            of SDL_EVENT_KEYDOWN:
+                case event.key.scancode
+                of SDL_SCANCODE_ESCAPE: quit = true
+                of SDL_SCANCODE_LSHIFT: accelerate = true
+                of SDL_SCANCODE_W: moveFwd = true
+                of SDL_SCANCODE_S: moveBack = true
+                of SDL_SCANCODE_A: moveLeft = true
+                of SDL_SCANCODE_D: moveRight = true
+                of SDL_SCANCODE_Q: moveUp = true
+                of SDL_SCANCODE_E: moveDown = true
+                else: discard
+            of SDL_EVENT_KEYUP:
+                case event.key.scancode
+                of SDL_SCANCODE_LSHIFT: accelerate = false
+                of SDL_SCANCODE_W: moveFwd = false
+                of SDL_SCANCODE_S: moveBack = false
+                of SDL_SCANCODE_A: moveLeft = false
+                of SDL_SCANCODE_D: moveRight = false
+                of SDL_SCANCODE_Q: moveUp = false
+                of SDL_SCANCODE_E: moveDown = false
+                else: discard
+            of SDL_EVENT_MOUSE_BUTTON_DOWN:
+                if event.button.button == SDL_BUTTON_RIGHT:
+                    rotating = true
+                    discard SDL_GetMouseState(lastMouseX, lastMouseY)
+            of SDL_EVENT_MOUSE_BUTTON_UP:
+                if event.button.button == SDL_BUTTON_RIGHT:
+                    rotating = false
+            of SDL_EVENT_MOUSE_MOTION:
+                if rotating:
+                    # mouseXOffset = event.motion.x - lastMouseX
+                    # mouseYOffset = lastMouseY - event.motion.y
+                    mouseXOffset = (event.motion.x - lastMouseX)
+                    mouseYOffset = -(event.motion.y - lastMouseY)  # Invert Y correctly for OpenGL
+                    lastMouseX = event.motion.x
+                    lastMouseY = event.motion.y
+                    mouseMoved = true  # Mark that a mouse movement occurred
+            else: discard
+
+        # Handle sprinting
+        if accelerate:
+            cam.velocity = 4.0'f32
+        else:
+            cam.velocity = 2.0'f32
+
+        # Handle movement
+        if moveFwd: cam.processKeyboard(SDL_SCANCODE_W, deltaTime)
+        if moveBack: cam.processKeyboard(SDL_SCANCODE_S, deltaTime)
+        if moveLeft: cam.processKeyboard(SDL_SCANCODE_A, deltaTime)
+        if moveRight: cam.processKeyboard(SDL_SCANCODE_D, deltaTime)
+        if moveUp: cam.processKeyboard(SDL_SCANCODE_Q, deltaTime)
+        if moveDown: cam.processKeyboard(SDL_SCANCODE_E, deltaTime)
+        # Process mouse movement
+        if mouseMoved:
+            cam.processMouseMovement(mouseXOffset, mouseYOffset)
+            mouseMoved = false  # Reset after processing
+        
 
         let cmdBuff = SDL_AcquireGPUCommandBuffer(gpu)
         var swapchainTxtr: SDL_GPUTexture
         let acquired: bool = SDL_WaitAndAcquireGPUSwapchainTexture(cmdBuff, window, addr swapchainTxtr, nil, nil)
         assert acquired, "SDL_WaitAndAcquireGPUSwapchainTexture failed: " & $SDL_GetError()
     
-        rotation += rotationSpeed * deltaTime
-        let modelMatrix = mat4(1.0'f32).translate(0, 0, -1.5).rotate(rotation, vec3(0'f32,1,0))
-        ubo.mvp = projectionMatrix * modelMatrix
+        # rotation += rotationSpeed * deltaTime
+        # let modelMatrix = mat4(1.0'f32).translate(0, 0, -1.5).rotate(rotation, vec3(0'f32,1,0))
+        # ubo.mvp = projectionMatrix * modelMatrix
+
+        ubo.mvp = cam.projectionMatrix * cam.viewMatrix
 
         if swapchainTxtr != nil:
             let colorTargetInfo = SDL_GPUColorTargetInfo(

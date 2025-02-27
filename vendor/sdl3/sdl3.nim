@@ -4014,7 +4014,7 @@ proc SDL_HasMouse* (): bool {.importc.}
 proc SDL_GetMice* ( count: var int ): ptr UncheckedArray[SDL_MouseID] {.importc.}
 proc SDL_GetMouseNameForID* ( instance_id: SDL_MouseID ): cstring {.importc.}
 proc SDL_GetMouseFocus* (): SDL_Window {.importc.}
-proc SDL_GetMouseState* ( x,y: var cfloat ): SDL_MouseButtonFlags {.importc.}
+proc SDL_GetMouseState* ( x,y: var cint ): SDL_MouseButtonFlags {.importc.}
 proc SDL_GetGlobalMouseState* ( x,y: var cfloat ): SDL_MouseButtonFlags {.importc.}
 proc SDL_GetRelativeMouseState* ( x,y: var cfloat ): SDL_MouseButtonFlags {.importc.}
 proc SDL_WarpMouseInWindow* ( window: SDL_Window, x,y: cfloat ): void {.importc.}
@@ -4798,8 +4798,8 @@ type
     windowID*: SDL_WindowID
     which*: SDL_MouseID
     state*: SDL_MouseButtonFlags
-    x*: cfloat
-    y*: cfloat
+    x*: int32
+    y*: int32
     xrel*: cfloat
     yrel*: cfloat
 
