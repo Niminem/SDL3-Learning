@@ -39,7 +39,7 @@ proc initCamera*(fov, aspect, near, far: float32): PerspectiveCamera =
     result.aspectRatio = aspect
     result.nearPlane = near
     result.farPlane = far
-    result.sensitivity = 0.0001'f32 # mouse sensitivity
+    result.sensitivity = 0.1'f32 # mouse sensitivity
     result.velocity = 2.0'f32 # units per second
     result.projectionMatrix = mat4f(1)
     result.viewMatrix = mat4f(1)
@@ -72,13 +72,13 @@ proc processKeyboard*(cam: PerspectiveCamera, direction: SDL_Scancode, deltaTime
     else: discard
     cam.updateCameraVectors()
 
-proc processMouseMovement*(cam: PerspectiveCamera, xoffset, yoffset: int32, constrainPitch = true) =
-    # cam.yaw += xoffset.float32 * cam.sensitivity
-    # cam.pitch += yoffset.float32 * cam.sensitivity
-    # if constrainPitch: cam.pitch = clamp(cam.pitch, -89.0'f32, 89.0'f32)
-    let maxOffset = 10.0'f32  # Prevents extreme movements
-    let scaledXOffset = clamp(xoffset.float32 * cam.sensitivity, -maxOffset, maxOffset)
-    let scaledYOffset = clamp(yoffset.float32 * cam.sensitivity, -maxOffset, maxOffset)
+proc processMouseMovement*(cam: PerspectiveCamera, xoffset, yoffset: cfloat,
+                           deltaTime: float32, constrainPitch = true) =
+    let
+        scaledXOffset = xoffset * cam.sensitivity
+        scaledYOffset = yoffset * cam.sensitivity
     cam.yaw += scaledXOffset
     cam.pitch += scaledYOffset
+    if constrainPitch:
+        cam.pitch = clamp(cam.pitch, -89.0'f32, 89.0'f32)
     cam.updateCameraVectors()

@@ -273,17 +273,13 @@ proc main =
     var rotation = 0.0'f32
     var ubo: UBO
 
-    # FPS control
-    const TARGET_FPS = 60
-    const FRAME_TIME = (1000 div TARGET_FPS).int32  # 16ms per frame
-
     # controls
     var
         quit, moveFwd, moveBack, moveLeft, moveRight, moveUp,
             moveDown, accelerate, rotating, mouseMoved = false
-        lastMouseX, lastMouseY = 0'i32
-        mouseXOffset, mouseYOffset = 0'i32
-    discard SDL_GetMouseState(lastMouseX, lastMouseY)  # Ensure initial values are correct
+        lastMouseX, lastMouseY: cfloat = 0
+        mouseXOffset, mouseYOffset: cfloat = 0
+    discard SDL_GetMouseState(addr lastMouseX, addr lastMouseY)  # Ensure initial values are correct
     var lastTick = SDL_GetTicks() # init time
     while not quit:
         var
@@ -292,7 +288,7 @@ proc main =
         lastTick = newTick
 
         var event: SDL_Event
-        while SDL_PollEvent(event):
+        while SDL_PollEvent(addr event):
             case event.type
             of SDL_EVENT_QUIT: quit = true
             of SDL_EVENT_KEYDOWN:
@@ -319,19 +315,18 @@ proc main =
             of SDL_EVENT_MOUSE_BUTTON_DOWN:
                 if event.button.button == SDL_BUTTON_RIGHT:
                     rotating = true
-                    discard SDL_GetMouseState(lastMouseX, lastMouseY)
+                    discard SDL_GetMouseState(addr lastMouseX, addr lastMouseY)
             of SDL_EVENT_MOUSE_BUTTON_UP:
                 if event.button.button == SDL_BUTTON_RIGHT:
                     rotating = false
             of SDL_EVENT_MOUSE_MOTION:
                 if rotating:
-                    # mouseXOffset = event.motion.x - lastMouseX
-                    # mouseYOffset = lastMouseY - event.motion.y
-                    mouseXOffset = (event.motion.x - lastMouseX)
+                    mouseXOffset = event.motion.x - lastMouseX
                     mouseYOffset = -(event.motion.y - lastMouseY)  # Invert Y correctly for OpenGL
                     lastMouseX = event.motion.x
                     lastMouseY = event.motion.y
-                    mouseMoved = true  # Mark that a mouse movement occurred
+                    mouseMoved = true
+                    echo "Mouse moved: ", mouseXOffset, ", ", mouseYOffset
             else: discard
 
         # Handle sprinting
@@ -349,9 +344,8 @@ proc main =
         if moveDown: cam.processKeyboard(SDL_SCANCODE_E, deltaTime)
         # Process mouse movement
         if mouseMoved:
-            cam.processMouseMovement(mouseXOffset, mouseYOffset)
+            cam.processMouseMovement(mouseXOffset, mouseYOffset, deltaTime)
             mouseMoved = false  # Reset after processing
-        
 
         let cmdBuff = SDL_AcquireGPUCommandBuffer(gpu)
         var swapchainTxtr: SDL_GPUTexture
