@@ -1,8 +1,5 @@
-import ../vendor/sdl3/sdl3
 import pkg/[glm]
-
-# NOTE: probably should add to a shared constants module
-const WorldUp* = vec3f(0, 1, 0) # (global) World's `up` vector
+import constants
 
 type
     PerspectiveCamera* = ref object
@@ -16,14 +13,12 @@ type
         aspectRatio*: float32
         nearPlane*: float32
         farPlane*: float32
-        sensitivity*: float32
-        velocity*: float32
         projectionMatrix*: Mat4f # MUST be updated after modifying camera fov, aspect ratio, near, far
         viewMatrix*: Mat4f # MUST be updated after modifying camera position, front, up
 
 proc updateCameraVectors*(cam: PerspectiveCamera) # fwd decl
 proc updateProjectionMatrix*(cam: PerspectiveCamera) # fwd decl
-proc initCamera*(fov, aspect, near, far: float32): PerspectiveCamera =
+proc newCamera*(fov, aspect, near, far: float32): PerspectiveCamera =
     # fov — Camera frustum vertical field of view.
     # aspect — Camera frustum aspect ratio.
     # near — Camera frustum near plane.
@@ -39,8 +34,6 @@ proc initCamera*(fov, aspect, near, far: float32): PerspectiveCamera =
     result.aspectRatio = aspect
     result.nearPlane = near
     result.farPlane = far
-    result.sensitivity = 0.1'f32 # mouse sensitivity
-    result.velocity = 2.0'f32 # units per second
     result.projectionMatrix = mat4f(1)
     result.viewMatrix = mat4f(1)
     result.updateCameraVectors()
@@ -59,26 +52,3 @@ proc updateCameraVectors*(cam: PerspectiveCamera) =
     cam.right = normalize(cross(cam.front, WorldUp))
     cam.up = normalize(cross(cam.right, cam.front))
     cam.viewMatrix = lookAt(cam.position, cam.position + cam.front, cam.up)
-
-proc processKeyboard*(cam: PerspectiveCamera, direction: SDL_Scancode, deltaTime: float32) =
-    let velocity = cam.velocity * deltaTime
-    case direction
-    of SDL_Scancode_W: cam.position += cam.front * velocity # forward
-    of SDL_Scancode_S: cam.position -= cam.front * velocity # backward
-    of SDL_Scancode_A: cam.position -= cam.right * velocity # left
-    of SDL_Scancode_D: cam.position += cam.right * velocity # right
-    of SDL_Scancode_Q: cam.position += cam.up * velocity # up
-    of SDL_Scancode_E: cam.position -= cam.up * velocity # down
-    else: discard
-    cam.updateCameraVectors()
-
-proc processMouseMovement*(cam: PerspectiveCamera, xoffset, yoffset: cfloat,
-                           deltaTime: float32, constrainPitch = true) =
-    let
-        scaledXOffset = xoffset * cam.sensitivity
-        scaledYOffset = yoffset * cam.sensitivity
-    cam.yaw += scaledXOffset
-    cam.pitch += scaledYOffset
-    if constrainPitch:
-        cam.pitch = clamp(cam.pitch, -89.0'f32, 89.0'f32)
-    cam.updateCameraVectors()

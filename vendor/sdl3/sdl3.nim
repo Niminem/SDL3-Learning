@@ -4004,17 +4004,17 @@ type
     SDL_MOUSEWHEEL_FLIPPED
   SDL_MouseButtonFlags* = uint32
 
-const SDL_BUTTON_LEFT* =     1
-const SDL_BUTTON_MIDDLE* =   2
-const SDL_BUTTON_RIGHT* =    3
-const SDL_BUTTON_X1* =       4
-const SDL_BUTTON_X2* =       5
-proc SDL_BUTTON_MASK* (x: uint): uint = 1'u shl ((x)-1)
-const SDL_BUTTON_LMASK* =    SDL_BUTTON_MASK(SDL_BUTTON_LEFT)
-const SDL_BUTTON_MMASK* =    SDL_BUTTON_MASK(SDL_BUTTON_MIDDLE)
-const SDL_BUTTON_RMASK* =    SDL_BUTTON_MASK(SDL_BUTTON_RIGHT)
-const SDL_BUTTON_X1MASK* =   SDL_BUTTON_MASK(SDL_BUTTON_X1)
-const SDL_BUTTON_X2MASK* =   SDL_BUTTON_MASK(SDL_BUTTON_X2)
+const SDL_BUTTON_LEFT* =     1'u8
+const SDL_BUTTON_MIDDLE* =   2'u8
+const SDL_BUTTON_RIGHT* =    3'u8
+const SDL_BUTTON_X1* =       4'u8
+const SDL_BUTTON_X2* =       5'u8
+proc SDL_BUTTON_MASK* (x: uint8): uint8 = 1'u8 shl ((x)-1)
+const SDL_BUTTON_LMASK* =   uint8 SDL_BUTTON_MASK(SDL_BUTTON_LEFT)
+const SDL_BUTTON_MMASK* =   uint8 SDL_BUTTON_MASK(SDL_BUTTON_MIDDLE)
+const SDL_BUTTON_RMASK* =   uint8 SDL_BUTTON_MASK(SDL_BUTTON_RIGHT)
+const SDL_BUTTON_X1MASK* =  uint8 SDL_BUTTON_MASK(SDL_BUTTON_X1)
+const SDL_BUTTON_X2MASK* =  uint8 SDL_BUTTON_MASK(SDL_BUTTON_X2)
 
 proc SDL_HasMouse* (): bool {.importc.}
 proc SDL_GetMice* ( count: var int ): ptr UncheckedArray[SDL_MouseID] {.importc.}
@@ -4459,7 +4459,7 @@ proc SDL_GetTrayEntryChecked* ( entry: SDL_TrayEntry ): bool {.importc.}
 proc SDL_SetTrayEntryEnabled* ( entry: SDL_TrayEntry, enabled: bool ): void {.importc.}
 proc SDL_GetTrayEntryEnabled* ( entry: SDL_TrayEntry ): bool {.importc.}
 proc SDL_SetTrayEntryCallback* ( entry: SDL_TrayEntry, callback: SDL_TrayCallback, userdata: pointer ): void {.importc.}
-proc SDL_ClickTrayEntry( entry: SDL_TrayEntry ): void {.importc.}
+proc SDL_ClickTrayEntry*( entry: SDL_TrayEntry ): void {.importc.}
 proc SDL_DestroyTray* ( tray: SDL_Tray ): void {.importc.}
 proc SDL_GetTrayEntryParent* ( entry: SDL_TrayEntry ): SDL_TrayMenu {.importc.}
 proc SDL_GetTrayMenuParentEntry* ( menu: SDL_TrayMenu ): SDL_TrayEntry {.importc.}
