@@ -1,7 +1,7 @@
-import std/[os, osproc, math]
+import std/[os, osproc]
 import pkg/[glm, stb_image/read]
 import ../vendor/sdl3/sdl3
-import perspective_camera, basic_controller, input_manager
+import perspective_camera, basic_controller, input_manager, clock
 # note: only using load function and RGBA constant from stb_image
 
 type
@@ -28,7 +28,7 @@ proc loadShader(gpu: SDL_GPUDevice; filename: string; stage: SDL_GPUShaderStage;
                 num_samplers: uint32): SDL_GPUShader =
 
     var code = readFileAsUint8(filename)
-    assert code.len > 0, "Failed to read shader file: " & filename
+    doAssert code.len > 0, "Failed to read shader file: " & filename
 
     let shaderInfo = SDL_GPUShaderCreateInfo(
         code_size: code.len.uint32,
@@ -45,15 +45,15 @@ proc main =
     SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE)
 
     let init = SDL_Init(SDL_INIT_VIDEO)
-    assert init, "SDL_Init failed: " & $SDL_GetError()
+    doAssert init, "SDL_Init failed: " & $SDL_GetError()
 
     let window = SDL_CreateWindow("Wubba lubba dub duuuuuuub!!!", 2000, 1200, 0)
-    assert window != nil, "SDL_CreateWindow failed: " & $SDL_GetError()
+    doAssert window != nil, "SDL_CreateWindow failed: " & $SDL_GetError()
 
     let gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, false, nil)
-    assert gpu != nil, "SDL_CreateGPUDevice failed: " & $SDL_GetError()
+    doAssert gpu != nil, "SDL_CreateGPUDevice failed: " & $SDL_GetError()
     let claimed = SDL_ClaimWindowForGPUDevice(gpu, window)
-    assert claimed, "SDL_ClaimWindowForGPUDevice failed: " & $SDL_GetError()
+    doAssert claimed, "SDL_ClaimWindowForGPUDevice failed: " & $SDL_GetError()
 
     let
         vertShader = gpu.loadShader(currentSourcePath.parentDir() / "camera.spv.vert",
@@ -183,7 +183,7 @@ proc main =
     SDL_UploadToGPUTexture(copyPass, addr textureSrc, addr textureDest, cycle=false)
 
     SDL_EndGPUCopyPass(copyPass)
-    assert SDL_SubmitGPUCommandBuffer(copyCmdBuff), "SDL_SubmitGPUCommandBuffer failed: " & $SDL_GetError()
+    doAssert SDL_SubmitGPUCommandBuffer(copyCmdBuff), "SDL_SubmitGPUCommandBuffer failed: " & $SDL_GetError()
     SDL_ReleaseGPUTransferBuffer(gpu, transferBuff)
     SDL_ReleaseGPUTransferBuffer(gpu, textureTransferBuff)
 
@@ -253,35 +253,33 @@ proc main =
         )
     )
     let pipeline = SDL_CreateGPUGraphicsPipeline(gpu, addr pipelineInfo)
-    assert pipeline != nil, "SDL_CreateGPUGraphicsPipeline failed: " & $SDL_GetError()
+    doAssert pipeline != nil, "SDL_CreateGPUGraphicsPipeline failed: " & $SDL_GetError()
 
     SDL_ReleaseGPUShader(gpu, vertShader)
     SDL_ReleaseGPUShader(gpu, fragShader)
 
     var windowSize: tuple[x,y: int32] = (0, 0)
     let gotWindowSize = SDL_GetWindowSize(window, addr windowSize.x, addr windowSize.y)
-    assert gotWindowSize, "SDL_GetWindowSize failed: " & $SDL_GetError()
+    doAssert gotWindowSize, "SDL_GetWindowSize failed: " & $SDL_GetError()
     
     let cam = newCamera(45.0'f32, windowSize.x.float / windowSize.y.float, 0.1'f32, 100.0'f32)
     cam.position = vec3f(0, 0, 3)
 
     var controls = initBasicController(cam)
-    var ubo: UBO # Uniform buffer object
+    var ubo = UBO() # Uniform buffer object
 
-    var lastTick = SDL_GetTicks() # init time
+    var clock = initClock()
     while pollInputEvents() and not isKeyPressed(SDL_SCANCODE_ESCAPE):
-        let
-            newTick = SDL_GetTicks()
-            deltaTime = (newTick - lastTick).float32 / 1000.0'f32
-        lastTick = newTick
-
+        # Get delta time
+        let deltaTime = clock.getDelta()
+        echo "FPS: ", clock.getFPS()
         # Update camera
         controls.update(deltaTime)
 
         let cmdBuff = SDL_AcquireGPUCommandBuffer(gpu)
         var swapchainTxtr: SDL_GPUTexture
         let acquired: bool = SDL_WaitAndAcquireGPUSwapchainTexture(cmdBuff, window, addr swapchainTxtr, nil, nil)
-        assert acquired, "SDL_WaitAndAcquireGPUSwapchainTexture failed: " & $SDL_GetError()
+        doAssert acquired, "SDL_WaitAndAcquireGPUSwapchainTexture failed: " & $SDL_GetError()
     
         # rotation += rotationSpeed * deltaTime
         # let modelMatrix = mat4(1.0'f32).translate(0, 0, -1.5).rotate(rotation, vec3(0'f32,1,0))
@@ -306,7 +304,7 @@ proc main =
             SDL_DrawGPUIndexedPrimitives(renderPass, 6, 1, 0, 0, 0)
             SDL_EndGPURenderPass(renderPass)
             let sumbitted = SDL_SubmitGPUCommandBuffer(cmdBuff)
-            assert sumbitted, "SDL_SubmitGPUCommandBuffer failed: " & $SDL_GetError()
+            doAssert sumbitted, "SDL_SubmitGPUCommandBuffer failed: " & $SDL_GetError()
 
     SDL_ReleaseGPUGraphicsPipeline(gpu, pipeline)
     SDL_ReleaseWindowFromGPUDevice(gpu, window)

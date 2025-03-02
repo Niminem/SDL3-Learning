@@ -72,6 +72,7 @@ proc update*(controller: var BasicController, deltaTime: float32) =
         let (xoffset, yoffset) = getMouseDelta()
         controller.panCamera(xoffset, yoffset)
 
-    if inputState.mouse.wheel != 0: # mouse wheel zoom
-        controller.camera.position += controller.camera.front * inputState.mouse.wheel
+    let mouseWheelDelta = getMouseWheelDelta()
+    if  mouseWheelDelta != 0: # mouse wheel zoom
+        controller.camera.position += controller.camera.front *  mouseWheelDelta
         controller.camera.updateCameraVectors()

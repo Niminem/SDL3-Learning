@@ -25,12 +25,6 @@ when defined(emscripten):
 else:
   {.push callConv: cdecl, dynlib: LibName.}
 
-# constant for padding (SDL_Event)
-const PaddingSize =
-  when sizeof(pointer) <= 8: 56
-  elif sizeof(pointer) == 16: 64
-  else: 3 * sizeof(pointer)
-
 # Extra C types needed by some functions.
 type cva_list* {.importc: "va_list", header: "<stdarg.h>".} = object
 type cwchar_t {.importc: "wchar_t", header: "<wchar.h>".} = object
@@ -5145,7 +5139,7 @@ type
     render*: SDL_RenderEvent
     drop*: SDL_DropEvent
     clipboard*: SDL_ClipboardEvent
-    padding*: array[PaddingSize, uint8]
+    padding*: array[128, uint8]
 
 proc SDL_PumpEvents* (): void {.importc.}
 
