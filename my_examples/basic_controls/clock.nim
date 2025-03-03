@@ -1,4 +1,4 @@
-import ../vendor/sdl3/sdl3
+import ../../vendor/sdl3/sdl3
 
 type Clock* = object
     autoStart*: bool

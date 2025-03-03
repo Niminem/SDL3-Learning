@@ -1,5 +1,5 @@
 import std/[tables, packedsets]
-import ../vendor/sdl3/sdl3
+import ../../vendor/sdl3/sdl3
 
 type
     KeyState* = enum

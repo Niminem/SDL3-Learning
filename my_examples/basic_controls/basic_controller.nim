@@ -1,5 +1,5 @@
 import pkg/[glm]
-import ../vendor/sdl3/sdl3
+import ../../vendor/sdl3/sdl3
 import perspective_camera, input_manager
 
 type

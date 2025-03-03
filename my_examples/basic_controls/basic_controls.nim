@@ -1,6 +1,6 @@
 import std/[os, osproc]
 import pkg/[glm, stb_image/read]
-import ../vendor/sdl3/sdl3
+import ../../vendor/sdl3/sdl3
 import perspective_camera, basic_controller, input_manager, clock
 # note: only using load function and RGBA constant from stb_image
 
@@ -56,10 +56,10 @@ proc main =
     doAssert claimed, "SDL_ClaimWindowForGPUDevice failed: " & $SDL_GetError()
 
     let
-        vertShader = gpu.loadShader(currentSourcePath.parentDir() / "camera.spv.vert",
+        vertShader = gpu.loadShader(currentSourcePath.parentDir() / "basic_controls.spv.vert",
                                     SDL_GPU_SHADERSTAGE_VERTEX, SDL_GPU_SHADERFORMAT_SPIRV,
                                     uniformBuffersCount=1, num_samplers=0)
-        fragShader = gpu.loadShader(currentSourcePath.parentDir() / "camera.spv.frag",
+        fragShader = gpu.loadShader(currentSourcePath.parentDir() / "basic_controls.spv.frag",
                                     SDL_GPU_SHADERSTAGE_FRAGMENT, SDL_GPU_SHADERFORMAT_SPIRV,
                                     uniformBuffersCount=0, num_samplers=1)
 
@@ -314,15 +314,15 @@ proc main =
 
 when isMainModule:
     let
-        vertPath = "glslc " & currentSourcePath.parentDir() / "camera.glsl.vert -o " &
-                           currentSourcePath.parentDir() / "camera.spv.vert"
+        vertPath = "glslc " & currentSourcePath.parentDir() / "basic_controls.glsl.vert -o " &
+                           currentSourcePath.parentDir() / "basic_controls.spv.vert"
         compiledVert = execCmdEx(vertPath)
     if compiledVert.exitCode != 0:
         echo compiledVert.output
         quit(QuitFailure)
     let
-        fragPath = "glslc " & currentSourcePath.parentDir() / "camera.glsl.frag -o " &
-                           currentSourcePath.parentDir() / "camera.spv.frag"
+        fragPath = "glslc " & currentSourcePath.parentDir() / "basic_controls.glsl.frag -o " &
+                           currentSourcePath.parentDir() / "basic_controls.spv.frag"
         compiledFrag = execCmdEx(fragPath)
     if compiledFrag.exitCode != 0:
         echo compiledFrag.output
