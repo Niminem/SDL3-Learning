@@ -18,14 +18,14 @@ type
 
 proc updateCameraVectors*(cam: PerspectiveCamera) # fwd decl
 proc updateProjectionMatrix*(cam: PerspectiveCamera) # fwd decl
-proc newCamera*(fov, aspect, near, far: float32): PerspectiveCamera =
+proc newCamera*(fov, aspect, near, far: float32, position = vec3f(0,0,3)): PerspectiveCamera =
     # fov — Camera frustum vertical field of view.
     # aspect — Camera frustum aspect ratio.
     # near — Camera frustum near plane.
     # far — Camera frustum far plane.
     # Together these define the camera's viewing frustum.
     new result
-    result.position = vec3f(0, 0, 0)
+    result.position = position
     result.front = vec3f(0, 0, -1)
     result.up = vec3f(0, 1, 0)
     result.yaw = -90.0'f32

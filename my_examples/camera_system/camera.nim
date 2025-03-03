@@ -12,7 +12,7 @@ type
     UBO = object
         mvp {.align(16).}: Mat4[float32]
 
-proc readFileAsUint8(filename: string): seq[uint8] =
+proc readFileAsUint8(filename: string): seq[uint8] = # remember: uint8 is byte & vice versa
   let fileSize = getFileSize(filename)
   var file: File
   if not open(file, filename, fmRead):
@@ -263,7 +263,6 @@ proc main =
     doAssert gotWindowSize, "SDL_GetWindowSize failed: " & $SDL_GetError()
     
     let cam = newCamera(45.0'f32, windowSize.x.float / windowSize.y.float, 0.1'f32, 100.0'f32)
-    cam.position = vec3f(0, 0, 3)
 
     var controls = initBasicController(cam)
     var ubo = UBO() # Uniform buffer object
