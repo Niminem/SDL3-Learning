@@ -262,7 +262,7 @@ proc main =
     let gotWindowSize = SDL_GetWindowSize(window, addr windowSize.x, addr windowSize.y)
     doAssert gotWindowSize, "SDL_GetWindowSize failed: " & $SDL_GetError()
     
-    let cam = newCamera(45.0'f32, windowSize.x.float / windowSize.y.float, 0.1'f32, 100.0'f32)
+    let cam = newPerspectiveCamera(45.0'f32, windowSize.x.float / windowSize.y.float, 0.1'f32, 100.0'f32)
 
     var controls = initBasicController(cam)
     var ubo = UBO() # Uniform buffer object
