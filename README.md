@@ -1,5 +1,8 @@
 # SDL3-Learning
 
+## UPDATE 3/4/25
+Pausing this project to focus on work at the moment, but feel free to open issues here if you encounter any.
+
 ## To The Nim Communiy
 
 This is my collection of examples (and soon ports) for SDL3's new GPU API.
